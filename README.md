@@ -1,6 +1,6 @@
 # PickYourProf
 
-Inspiration
+<h3>Inspiration</h3>
 There was no easy way to get personalized professor choices. Looking for a professor requires hours of looking through numerous review sites, university catalogs, etc. We've simplified that for you.
 
 What it does
