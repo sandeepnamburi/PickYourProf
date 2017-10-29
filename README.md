@@ -20,3 +20,5 @@ We learned a lot of full stack development.
 
 <h3>What's next for Pick Your Prof</h3>
 We plan on expanding to more universities in Texas and even add analytics.
+
+<a href="https://ibb.co/ftFGVm"><img src="https://preview.ibb.co/gYZobR/Screen_Shot_2017_10_29_at_11_44_05_AM.png" alt="Screen_Shot_2017_10_29_at_11_44_05_AM" border="0"></a>
