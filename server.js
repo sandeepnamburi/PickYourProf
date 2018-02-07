@@ -6,7 +6,7 @@ var upload = multer();
 
 const app = express()
 
-var port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
