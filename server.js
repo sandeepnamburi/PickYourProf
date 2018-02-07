@@ -6,6 +6,8 @@ var upload = multer();
 
 const app = express()
 
+var port = process.env.PORT || 3000;
+
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -39,6 +41,6 @@ app.post('/home', upload.array(), function (req, res) {
 
 app.use(express.static('.'))
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
+app.listen(PORT, function () {
+  console.log('Example app listening on http://localhost:' + PORT)
 })
