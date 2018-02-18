@@ -28,13 +28,17 @@ app.post('/home', upload.array(), function (req, res) {
   // Do some stuff
   abhinav(numb2)
   .then(function(resp) {
-    var x = "Professors listed from best to worst: ";
-    for (var i = 0; i < resp.length; i++) {
-      x += (resp[i]);
-      if (i < resp.length - 1)
-        x += ", ";
+    if (resp.length == 0)
+      res.send("Not found in database. Ensure spelling.");
+    else {
+      var x = "Professors listed from best to worst: ";
+      for (var i = 0; i < resp.length; i++) {
+        x += (resp[i]);
+        if (i < resp.length - 1)
+          x += ", ";
+      }
+      res.send(x);
     }
-    res.send(x);
   });
 
   // Return a response to the browser
