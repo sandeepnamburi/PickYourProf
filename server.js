@@ -1,4 +1,4 @@
-var abhinav = require('./catalystFull.js')
+var alg = require('./algorithm.js')
 var express = require('express')
 var bodyParser = require('body-parser');
 var multer = require('multer');
@@ -12,7 +12,7 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
-app.post('/home', upload.array(), function (req, res) {
+app.post('/home', upload.array(), function(req, res) {
 
   //app.use(express.bodyParser());
   var ret = "";
@@ -26,7 +26,7 @@ app.post('/home', upload.array(), function (req, res) {
   console.log('req.body', numb2);
 
   // Do some stuff
-  abhinav(numb2)
+  alg(numb2)
   .then(function(resp) {
     if (resp.length == 0)
       res.send("Not found in database. Ensure spelling.");
@@ -41,14 +41,12 @@ app.post('/home', upload.array(), function (req, res) {
     }
   });
 
-  // Return a response to the browser
-
 });
 
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/rithvik.html');
+app.get('/', function(req, res) {
+  res.sendFile(__dirname + '/index.html');
 });
 
-app.listen(PORT, function () {
-  console.log('Example app listening on http://localhost:' + PORT)
+app.listen(PORT, function() {
+  console.log('Example app listening on http://localhost:' + PORT);
 })
