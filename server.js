@@ -6,8 +6,11 @@ var upload = multer();
 
 const app = express()
 
+var PORT = process.env.PORT || 3000;
+
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
 
 app.post('/home', upload.array(), function (req, res) {
 
@@ -23,7 +26,8 @@ app.post('/home', upload.array(), function (req, res) {
   console.log('req.body', numb2);
 
   // Do some stuff
-  abhinav(numb2, function(resp) {
+  abhinav(numb2)
+  .then(function(resp) {
     var x = "Professors listed from best to worst: ";
     for (var i = 0; i < resp.length; i++) {
       x += (resp[i]);
@@ -37,8 +41,10 @@ app.post('/home', upload.array(), function (req, res) {
 
 });
 
-app.use(express.static('.'))
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/rithvik.html');
+});
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
+app.listen(PORT, function () {
+  console.log('Example app listening on http://localhost:' + PORT)
 })

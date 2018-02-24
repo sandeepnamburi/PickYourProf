@@ -1,5 +1,7 @@
 # PickYourProf
 
+Go to <https://pick-your-prof.herokuapp.com/> to use PickYourProf!
+
 <p><br></p>
 
 
