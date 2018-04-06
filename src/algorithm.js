@@ -10,8 +10,9 @@ module.exports = function myFunc(courseNumber) {
     let db = new sqlite3.Database("./grades.db", sqlite3.OPEN_READONLY, function(err) {
       if (err) {
         console.error(err.message);
+      } else {
+        console.log("Connected to the grades database.");
       }
-      console.log("Connected to the grades database.");
     });
     
     var rts = courseNumber.split(" ");

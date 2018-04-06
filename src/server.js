@@ -1,8 +1,9 @@
-var alg = require('./algorithm.js')
+var alg = require('./algorithm')
 var express = require('express')
 var bodyParser = require('body-parser');
 var multer = require('multer');
 var upload = multer();
+var path = require('path');
 
 const app = express()
 
@@ -10,7 +11,7 @@ var PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.post('/home', upload.array(), function(req, res) {
 
@@ -44,7 +45,7 @@ app.post('/home', upload.array(), function(req, res) {
 });
 
 app.get('/', function(req, res) {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 app.listen(PORT, function() {
