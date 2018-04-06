@@ -1,5 +1,7 @@
 # PickYourProf
 
+Go to <https://pick-your-prof.herokuapp.com/> to use PickYourProf!
+
 <p><br></p>
 
 
@@ -18,7 +20,7 @@ There was no easy way to get personalized professor choices. Looking for a profe
 Pick My Prof analayzes the UT directory of professors and gives your recommendations for professors based on Rate My Professor ratings and university reviews. It currently works for every single course and professor in the UT Austin database.
 
 <h3>How we built it</h3>
-Our app has a light front-end with HTML and CSS. We have a powerful node web app powered by an Express.js server. The Node.js file is responsible for scraping data from websites and a large JSON formatted file that lists every UT professor and course. We utilized the Fetch API to pull and push data between scripts.
+Our app has a light front-end with HTML and CSS. We have a powerful node web app powered by an Express.js server. The Node.js file is responsible for scraping data from websites and accessing a database file that lists every UT professor and course. We utilized the Fetch API to pull and push data between scripts.
 
 <h3>How to open source</h3>
-We've included the bootsrap folder we've implemented material design. catalystFull.js, server.js, and rithvik.html are the main source dependencies. To add to our algorithm or frontend and expand to other schools, user the files listed above.
+We've included the bootsrap folder we've implemented material design. algorithm.js, server.js, and index.html are the main source dependencies. To add to our algorithm or frontend and expand to other schools, user the files listed above.

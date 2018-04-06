@@ -2,43 +2,143 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Material Design Bootstrap</title>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <!-- Material Design Bootstrap -->
-    <link href="css/mdb.min.css" rel="stylesheet">
-    <!-- Your custom styles (optional) -->
-    <link href="css/style.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Pick Your Prof</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Bootstrap core CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <!-- Material Design Bootstrap -->
+  <link href="css/mdb.min.css" rel="stylesheet">
+  <!-- Your custom styles (optional) -->
+  <link href="css/style.css" rel="stylesheet">
+  <style>
+    #theImage {
+      visibility: hidden;
+    }
+
+    p {
+      margin: 0px 0px 0px 0px;
+      font-size: 18px;
+      text-align: center;
+      font-family : Roboto;
+      color: black;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffffff;
+      font-family : Roboto;
+    }
+
+    img {
+      display: block;
+      margin: 0 auto;
+      padding-top: 10px;
+    }
+
+    #course, #dep {
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+  <title> UT Best Professors </title>
 </head>
 
-<body>
-
-    <!-- Start your project here-->
-    <div style="height: 100vh">
-        <div class="flex-center flex-column">
-            <h1 class="animated fadeIn mb-4">Material Design for Bootstrap</h1>
-
-            <h5 class="animated fadeIn mb-3">Thank you for using our product. We're glad you're with us.</h5>
-
-            <p class="animated fadeIn text-muted">MDB Team</p>
-        </div>
+<body style = "background-color: #F5F0F0">
+  <div style= "color:#FFFFFF; background-color: #F5F0F0; width: 700px; height: 600px;  margin:auto; float: top; padding-top: 50px;">
+  <!--Card Light-->
+  <div class="card">
+    <!--Card image-->
+    <div style = "background-color: #D26B20;">
+      <img class = "animated fadeIn" style = "position: relative; bottom: 3px; left: 35px;" width = "100px" align = "left" src = "http://www.fppw.net/wp-content/uploads/2015/08/longhorns.jpg">
+      <img class = "animated fadeIn" style = "position: relative; bottom: 3px; right: 35px;" width = "100px" align = "right" src = "http://www.fppw.net/wp-content/uploads/2015/08/longhorns.jpg">
+      <h1 class = "animated fadeIn" style = "padding-top: 20px; text-align: center;"> Pick Your Prof </h1>
     </div>
-    <!-- /Start your project here-->
+    
+    <!--/.Card image-->
+    <!--Card content-->
+    <div class="card-body text-center" style = "margin-bottom: 30px">
+      <!--Social shares button-->
+      <a class="activator">
+        <i class="fa fa-share-alt"></i>
+      </a>
+      <!--Title-->
+      <p><font size = "+3">Find the best professor.</font></p>
+      <p style = "padding-top: 0px;"></p>
+      <hr>
 
-    <!-- SCRIPTS -->
-    <!-- JQuery -->
-    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-    <!-- Bootstrap tooltips -->
-    <script type="text/javascript" src="js/popper.min.js"></script>
-    <!-- Bootstrap core JavaScript -->
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <!-- MDB core JavaScript -->
-    <script type="text/javascript" src="js/mdb.min.js"></script>
+      <form id = "query">
+        <label for="depart">
+          <span></span>
+          <input type="text" id="dep" placeholder = "Department (Ex: CS)" style = "text-align:center"/>
+        </label>
+        <label for="courNum">
+          <span></span>
+          <input type = "text" id = "course" placeholder = "Course Number (Ex: 314)" style = "text-align: center"/>
+        </label>
+        <button type = "button" onclick = getProfessors() id = "course" class = "btn btn-warning" style = "margin-top: 20px; margin-bottom: 20px">Submit</button>
+      </form>
+
+      <div>
+        <img id = "theImage" class = "animated rotateOut infinite" src = "http://texaschc.com/sitefiles/wp-content/uploads/2016/08/Longhorn-Logo-.png" width = "50px">
+        <p id = "showProfessor"></p>
+        <img src = "https://images.vexels.com/media/users/3/131139/isolated/preview/ff49ce17e1541baa9298514ce6ad37ae-information-circle-icon-by-vexels.png" title = "Some recommendations may be inaccurate due to incomplete data. Use at your own risk."
+          width = "20px">
+      </div>
+    </div>
+      <!--/.Card content-->
+  </div>
+  <!--/.Card Light-->
+
+  <script type = "text/javascript">
+
+    function getProfessors() {
+      document.getElementById("showProfessor").style.visibility = "hidden";
+      var img = document.getElementById("theImage");
+      img.style.visibility = "visible";
+      var cnum = document.getElementById("course").value.replace(/\s+/g, "");
+      var dep = document.getElementById("dep").value.replace(/\s+/g, "").toUpperCase();
+      if (dep == "" || cnum == "") {
+        alert("Please enter a valid department (Ex: CS, M) and course number (Ex: 314, 408D).");
+        var img = document.getElementById("theImage");
+        img.style.visibility = "hidden";
+      }
+
+      var combine = dep + " " + cnum;
+      var courseData = new FormData();
+      courseData.append("course", combine);
+
+      fetch("/home", {
+        method: "POST",
+        body: courseData
+      }).then(function(response) {
+        return response.text();
+      }).then(function(body) {
+        foundProfessor(body);
+      });
+    }
+
+    // CALL THIS METHOD WHEN PROFESSOR IS FOUND
+    function foundProfessor(name){
+      document.getElementById("showProfessor").innerHTML = name;
+      var img = document.getElementById("theImage");
+      img.style.visibility = "hidden";
+      document.getElementById("showProfessor").style.visibility = "visible";
+    }
+
+  </script>
+
+  <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+  <!-- Bootstrap tooltips -->
+  <script type="text/javascript" src="js/popper.min.js"></script>
+  <!-- Bootstrap core JavaScript -->
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <!-- MDB core JavaScript -->
+  <script type="text/javascript" src="js/mdb.min.js"></script>
+
 </body>
 
 </html>
