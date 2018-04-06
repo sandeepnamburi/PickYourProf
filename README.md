@@ -13,6 +13,9 @@ Go to <https://pick-your-prof.herokuapp.com/> to use PickYourProf!
 <a href="https://ibb.co/kHM6Vm"><img src="https://preview.ibb.co/nyfdbR/Screen_Shot_2017_10_29_at_11_44_31_AM.png" alt="Screen_Shot_2017_10_29_at_11_44_31_AM" border="0"></a><br /><a target='_blank' href='https://imgbb.com/'>photo upload sites</a><br />
 
 
+<h3>Creators</h3>
+PickYourProf was made by five CS students, Samarth Desai, Abhinav Kasamsetty, Sandeep Namburi, Joel Uong, and Rithvik Vellaturi, at HackTX 2017.
+
 <h3>Inspiration</h3>
 There was no easy way to get personalized professor choices. Looking for a professor requires hours of looking through numerous review sites, university catalogs, etc. We've simplified that for you.
 
