@@ -1,5 +1,6 @@
 /**
- *
+ *  algorithm.js
+ *  Takes in the name of a course and ranks professors that teach the course
  */
 const fetch = require('node-fetch');
 const Cheerio = require('cheerio');
@@ -55,6 +56,8 @@ module.exports = courseNumber => {
         // Gets the Rate My Professors rating for each professor
         Promise.all(promises)
           .then(ratings => {
+            console.log(profs);
+            console.log(ratings);
             var scores = getScores(profs, ratings, percentages);
             // Zip up the profs and scores into an object
             var profData = {};
@@ -137,9 +140,10 @@ function getProfRating(name) {
     // If professor found, then gets the professor's rating
     fetchProfLink(link)
       .then(endLink => {
-        return fetchProfRating('http://www.ratemyprofessors.com' + endLink);
+        fetchProfRating('http://www.ratemyprofessors.com' + endLink)
+         .then(rating => resolve(rating))
+         .catch(e => resolve(e));
       })
-      .then(rating => resolve(rating))
       .catch(err => resolve(err));
   });
 }
@@ -166,24 +170,25 @@ function fetchProfLink(link) {
       })
       .catch(err => reject('-1.0'));
   });
-  
 }
 
 // Gets rating of professor on Rate My Professors
 function fetchProfRating(link) {
-  return fetch(link)
-    .then(resp => resp.text())
-    .then(html => {
-      // Queries the link to the professor's page
-      var $ = Cheerio.load(html);
-      var overallQuality = $('[class=\'breakdown-container quality\'] .grade').html();
-      if (overallQuality != null) {
-        overallQuality = overallQuality.replace(/\s+/g, '');
-        // Overall rating found for professor
-        return overallQuality;
-      } else {
-        // No overall rating found for professor
-        throw new Error('-1.0');
-      }
-    });
+  return new Promise((resolve, reject) => {
+    fetch(link)
+      .then(resp => resp.text())
+      .then(html => {
+        // Queries the link to the professor's page
+        var $ = Cheerio.load(html);
+        var overallQuality = $('[class=\'breakdown-container quality\'] .grade').html();
+        if (overallQuality != null) {
+          overallQuality = overallQuality.replace(/\s+/g, '');
+          // Overall rating found for professor
+          resolve(overallQuality);
+        } else {
+          // No overall rating found for professor
+          reject('-1.0');
+        }
+      });
+  });
 }
