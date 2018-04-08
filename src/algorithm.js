@@ -38,17 +38,10 @@ module.exports = courseNumber => {
         profs.push(finalName);
         delete row.name;
         // Stores info of the percentage of each class that got each grade
-        var numStudents = Object.values(row).reduce((a, b) => a + b, 0);
-        var currPercentages = [];
-        var letters = ['a', 'b', 'c', 'd'];
-        var numbers = ['1', '2', '3'];
-        letters.forEach(letter => {
-          numbers.forEach(number => {
-            currPercentages.push(row[letter + number] / numStudents * 100);
-          });
-        });
-        currPercentages.push(row.f / numStudents * 100);
-        percentages.push(currPercentages);
+        var totalStu = Object.values(row).reduce((a, b) => a + b, 0);
+        var currPerc = [];
+        Object.values(row).forEach(numStu => currPerc.push(numStu / totalStu));
+        percentages.push(currPerc);
       }, () => {
         var promises = profs.map(prof => {
           return getProfRating(prof);
@@ -111,7 +104,6 @@ function getScores(profs, ratings, percentages) {
     // Calculates average GPA of students in the course
     var avgGpa = 0;
     percentages[i].forEach((percent, j) => avgGpa += percent * gpa[j]);
-    avgGpa /= 100.0;
     // Normalize average GPA to be out of 5 instead of 4
     avgGpa *= (5.0 / 4.0);
 
