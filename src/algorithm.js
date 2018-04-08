@@ -1,21 +1,21 @@
 /**
  *
  */
-const fetch = require("node-fetch");
-const Cheerio = require("cheerio");
+const fetch = require('node-fetch');
+const Cheerio = require('cheerio');
 const sqlite3 = require('sqlite3').verbose();
 
 module.exports = courseNumber => {
   return new Promise((resolve, reject) => {
-    let db = new sqlite3.Database("./grades.db", sqlite3.OPEN_READONLY, err => {
+    let db = new sqlite3.Database('./grades.db', sqlite3.OPEN_READONLY, err => {
       if (err) {
         console.error(err.message);
       } else {
-        console.log("Connected to the grades database.");
+        console.log('Connected to the grades database.');
       }
     });
     
-    var rts = courseNumber.split(" ");
+    var rts = courseNumber.split(' ');
     db.serialize(() => {
       // SQL query for getting professors and their grade data for a course
       let sql = `SELECT prof AS name, a1, a2, a3, b1, b2, b3, c1, c2, c3, d1, d2, d3, f
@@ -33,14 +33,14 @@ module.exports = courseNumber => {
         }
         // Reorders full name into first name, last name
         var splitName = row.name.split(/ +/);
-        var finalName = splitName[1] + " " + splitName[0];
+        var finalName = splitName[1] + ' ' + splitName[0];
         profs.push(finalName);
         delete row.name;
         // Stores info of the percentage of each class that got each grade
         var numStudents = Object.values(row).reduce((a, b) => a + b, 0);
         var currPercentages = [];
-        var letters = ["a", "b", "c", "d"];
-        var numbers = ["1", "2", "3"];
+        var letters = ['a', 'b', 'c', 'd'];
+        var numbers = ['1', '2', '3'];
         letters.forEach(letter => {
           numbers.forEach(number => {
             currPercentages.push(row[letter + number] / numStudents * 100);
@@ -65,8 +65,13 @@ module.exports = courseNumber => {
               return profData[b] - profData[a];
             });
 
+            // Wrap sorted professor list and score data into an object
+            var finalData = {};
+            finalData.list = sortedProfs;
+            finalData.scores = profData;
+
             // FINAL OUTPUT
-            resolve(sortedProfs);
+            resolve(finalData);
           });
       });
       
@@ -118,21 +123,21 @@ function getScores(profs, ratings, percentages) {
 }
 
 // Base URL for HTTP request
-const baseURL = "http://www.ratemyprofessors.com/search.jsp?queryoption=HEADER" + 
-  "&queryBy=teacherName&schoolName=University+of+Texas+at+Austin&schoolID=1255&query=";
+const baseURL = 'http://www.ratemyprofessors.com/search.jsp?queryoption=HEADER' + 
+  '&queryBy=teacherName&schoolName=University+of+Texas+at+Austin&schoolID=1255&query=';
 
 // Gets the rating for a professor
 function getProfRating(name) {
   return new Promise((resolve, reject) => {
     // Goes through list of professors
-    name = name.replace(" ", "+");
+    name = name.replace(' ', '+');
     // Link to query Rate My Professors
     var link = baseURL + name;
     // Searches for the professor on Rate My Professors
     // If professor found, then gets the professor's rating
     fetchProfLink(link)
       .then(endLink => {
-        return fetchProfRating("http://www.ratemyprofessors.com" + endLink);
+        return fetchProfRating('http://www.ratemyprofessors.com' + endLink);
       })
       .then(rating => resolve(rating))
       .catch(err => resolve(err));
@@ -147,11 +152,11 @@ function fetchProfLink(link) {
       .then(body => {
         var $ = Cheerio.load(body);
         // Checks if any results are found
-        var htmas = $("div.not-found-box").next().html();
-        if (!htmas.includes("Your search")) {
+        var htmas = $('div.not-found-box').next().html();
+        if (!htmas.includes('Your search')) {
           // Gets the link for the first result
-          $(".listings").filter(function() {
-            var endLink = $($(this)[0].children[3].children[1]).attr("href");
+          $('.listings').filter(function() {
+            var endLink = $($(this)[0].children[3].children[1]).attr('href');
             resolve(endLink);
           });
         } else {
@@ -171,9 +176,9 @@ function fetchProfRating(link) {
     .then(html => {
       // Queries the link to the professor's page
       var $ = Cheerio.load(html);
-      var overallQuality = $("[class='breakdown-container quality'] .grade").html();
+      var overallQuality = $('[class=\'breakdown-container quality\'] .grade').html();
       if (overallQuality != null) {
-        overallQuality = overallQuality.replace(/\s+/g, "");
+        overallQuality = overallQuality.replace(/\s+/g, '');
         // Overall rating found for professor
         return overallQuality;
       } else {
