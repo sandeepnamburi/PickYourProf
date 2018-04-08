@@ -56,8 +56,6 @@ module.exports = courseNumber => {
         // Gets the Rate My Professors rating for each professor
         Promise.all(promises)
           .then(ratings => {
-            console.log(profs);
-            console.log(ratings);
             var scores = getScores(profs, ratings, percentages);
             // Zip up the profs and scores into an object
             var profData = {};
