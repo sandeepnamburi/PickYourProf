@@ -24,7 +24,9 @@ module.exports = courseNumber => {
                 ORDER BY name`;
 
       var profs = [];
+      // 2D array storing percentage of class that got each grade for each prof
       var percentages = [];
+      // Gets information on each professor teaching the given course
       db.each(sql, rts, (err, row) => {
         if (err) {
           throw err;
@@ -33,22 +35,18 @@ module.exports = courseNumber => {
         var splitName = row.name.split(/ +/);
         var finalName = splitName[1] + " " + splitName[0];
         profs.push(finalName);
-
+        delete row.name;
         // Stores info of the percentage of each class that got each grade
-        var totalStudents = row.a1 + row.a2 + row.a3 + row.b1 + row.b2 + row.b3
-                          + row.c1 + row.c2 + row.c3 + row.d1 + row.d2 + row.d3
-                          + row.f;
+        var numStudents = Object.values(row).reduce((a, b) => a + b, 0);
         var currPercentages = [];
-        currPercentages.push((row.a1 + row.a2) / totalStudents * 100);
-        currPercentages.push(row.a3 / totalStudents * 100);
-        var letters = ["b", "c", "d"];
+        var letters = ["a", "b", "c", "d"];
         var numbers = ["1", "2", "3"];
         letters.forEach(letter => {
           numbers.forEach(number => {
-            currPercentages.push(row[letter + number] / totalStudents * 100);
+            currPercentages.push(row[letter + number] / numStudents * 100);
           });
         });
-        currPercentages.push(row.f / totalStudents * 100);
+        currPercentages.push(row.f / numStudents * 100);
         percentages.push(currPercentages);
       }, () => {
         var promises = profs.map(prof => {
@@ -64,7 +62,7 @@ module.exports = courseNumber => {
             console.log(profData);
             // Sort professors by their scores in descending order
             var sortedProfs = Object.keys(profData).sort((a, b) => {
-              profData[b] - profData[a]
+              return profData[b] - profData[a];
             });
 
             // FINAL OUTPUT
@@ -102,15 +100,14 @@ function getScores(profs, ratings, percentages) {
       ratings[i] = parseFloat(ratings[i]);
     }
 
+    // GPA that a student gets for getting between an A+ and an F
+    const gpa = [4, 4, 3.67, 3.33, 3, 2.67, 2.33, 2, 1.67, 1.33, 1, 0.67, 0];
     // Calculates average GPA of students in the course
-    const gpa = [4, 3.67, 3.33, 3, 2.67, 2.33, 2, 1.67, 1.33, 1, 0.67, 0];
     var avgGpa = 0;
-    for (var j = 0; j < percentages[i].length; j++) {
-      avgGpa += percentages[i][j] * gpa[j];
-    }
+    percentages[i].forEach((percent, j) => avgGpa += percent * gpa[j]);
     avgGpa /= 100.0;
     // Normalize average GPA to be out of 5 instead of 4
-    avgGpa = avgGpa * 5.0 / 4.0;
+    avgGpa *= (5.0 / 4.0);
 
     // Score is normalized average GPA + Rate My Professors rating
     // Max score is 10
@@ -146,23 +143,23 @@ function getProfRating(name) {
 function fetchProfLink(link) {
   return new Promise((resolve, reject) => {
     fetch(link)
-    .then(res => res.text())
-    .then(body => {
-      var $ = Cheerio.load(body);
-      // Checks if any results are found
-      var htmas = $("div.not-found-box").next().html();
-      if (!htmas.includes("Your search")) {
-        // Gets the link for the first result
-        $(".listings").filter(function() {
-          var endLink = $($(this)[0].children[3].children[1]).attr("href");
-          resolve(endLink);
-        });
-      } else {
-        // No results found in Rate My Professors for the professor
-        reject('-1.0');
-      }
-    })
-    .catch(err => reject('-1.0'));
+      .then(res => res.text())
+      .then(body => {
+        var $ = Cheerio.load(body);
+        // Checks if any results are found
+        var htmas = $("div.not-found-box").next().html();
+        if (!htmas.includes("Your search")) {
+          // Gets the link for the first result
+          $(".listings").filter(function() {
+            var endLink = $($(this)[0].children[3].children[1]).attr("href");
+            resolve(endLink);
+          });
+        } else {
+          // No results found in Rate My Professors for the professor
+          reject('-1.0');
+        }
+      })
+      .catch(err => reject('-1.0'));
   });
   
 }
