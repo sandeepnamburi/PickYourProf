@@ -108,8 +108,9 @@ function getScores(profs, ratings, percentages) {
     avgGpa *= (5.0 / 4.0);
 
     // Score is normalized average GPA + Rate My Professors rating
+    // If none of the professors are on RMP, score is avg GPA scaled out of 10
     // Max score is 10
-    var score = avgGpa + ratings[i];
+    var score = (numProfs === 0) ? avgGpa + ratings[i] : avgGpa * 2;
     scores.push(score);
   }
   return scores;
