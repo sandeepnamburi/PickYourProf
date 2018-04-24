@@ -1,11 +1,11 @@
-var alg = require('./algorithm')
-var express = require('express')
-var bodyParser = require('body-parser');
-var multer = require('multer');
-var upload = multer();
-var path = require('path');
+const getProfData = require('./algorithm');
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
+const multer = require('multer');
 
-const app = express()
+const app = express();
+const upload = multer();
 
 var PORT = process.env.PORT || 3000;
 
@@ -13,41 +13,56 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-app.post('/home', upload.array(), function(req, res) {
+app.post('/home', upload.any(), (req, res) => {
+  var course = req.body.course;
+  console.log('Course:', course);
 
-  //app.use(express.bodyParser());
-  var ret = "";
-
-  var txt = JSON.stringify(req.body);
-
-  var numb = txt.replace("{\"course\":\"", "")
-  var numb2 = numb.replace("\"}", "");
-  numb2 = numb2.toUpperCase();
-
-  console.log('req.body', numb2);
-
-  // Do some stuff
-  alg(numb2)
-  .then(function(resp) {
-    if (resp.length == 0)
-      res.send("Not found in database. Ensure spelling.");
-    else {
-      var x = "Professors listed from best to worst: ";
-      for (var i = 0; i < resp.length; i++) {
-        x += (resp[i]);
-        if (i < resp.length - 1)
-          x += ", ";
+  // Get the sorted list of professors and their scores
+  getProfData(course)
+    .then(function(data) {
+      if (data.list.length == 0)
+        res.send('Not found in database. Ensure spelling.');
+      else {
+        // HTML tags for output formatting
+        const leftTag = '<td style="font-size:18px;font-family:Roboto;color:black;">';
+        const rightTag = '<td style="font-size:18px;font-family:Roboto;color:black;">';
+        var output = '<table style="width:40%;margin-left:26%;margin-right:20%;">';
+        output += `<tr>${leftTag}<b>Professor</b></td>${rightTag}<b>Score</b></td></tr>`;
+        data.list.forEach(prof => {
+          // Formats the name correctly
+          var name = formatName(prof);
+          output += '<tr>';
+          output += (leftTag + name + '</td>');
+          output += (rightTag + (Math.round(data.scores[prof] * 100) / 100) + '</td>');
+          output += '</tr>';
+        });
+        output += '</table>';
+        // Sends output to HTML file to be printed on the webpage
+        res.send(output);
       }
-      res.send(x);
-    }
-  });
+    });
 
 });
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-app.listen(PORT, function() {
+app.listen(PORT, () => {
   console.log('Example app listening on http://localhost:' + PORT);
-})
+});
+
+function formatName(name) {
+  // Capitalize only the first letter of first and last name
+  var arr = name.split(' ');
+  var first = arr[0].substring(0, 1) + arr[0].substring(1).toLowerCase();
+  var last = (arr[1].substring(0, 1) + arr[1].substring(1).toLowerCase());
+  // Fix the cases where there is a hyphen in the person's name
+  arr = first.split('-');
+  if (arr.length > 1)
+    first = arr[0] + '-' + arr[1].substring(0, 1).toUpperCase() + arr[1].substring(1);
+  arr = last.split('-');
+  if (arr.length > 1)
+    last = arr[0] + '-' + arr[1].substring(0, 1).toUpperCase() + arr[1].substring(1);
+  return first + ' ' + last;
+}

@@ -1,175 +1,184 @@
 /**
- *
+ *  algorithm.js
+ *  Takes in the name of a course and ranks professors that teach the course
  */
-const Request = require("request");
-const Cheerio = require("cheerio");
+const fetch = require('node-fetch');
+const Cheerio = require('cheerio');
 const sqlite3 = require('sqlite3').verbose();
 
-module.exports = function myFunc(courseNumber) {
-  return new Promise(function(resolve, reject) {
-    let db = new sqlite3.Database("./grades.db", sqlite3.OPEN_READONLY, function(err) {
+module.exports = courseNumber => {
+  return new Promise((resolve, reject) => {
+    let db = new sqlite3.Database('./grades.db', sqlite3.OPEN_READONLY, err => {
       if (err) {
         console.error(err.message);
       } else {
-        console.log("Connected to the grades database.");
+        console.log('Connected to the grades database.');
       }
     });
     
-    var rts = courseNumber.split(" ");
-    db.serialize(function() {
+    var rts = courseNumber.split(' ');
+    db.serialize(() => {
+      // SQL query for getting professors and their grade data for a course
       let sql = `SELECT prof AS name, a1, a2, a3, b1, b2, b3, c1, c2, c3, d1, d2, d3, f
                 FROM agg
                 WHERE dept = ? AND course_nbr = ?
                 ORDER BY name`;
 
       var profs = [];
+      // 2D array storing percentage of class that got each grade for each prof
       var percentages = [];
-      db.each(sql, [rts[0], rts[1]], (err, row) => {
+      // Gets information on each professor teaching the given course
+      db.each(sql, rts, (err, row) => {
         if (err) {
           throw err;
         }
+        // Reorders full name into first name, last name
         var splitName = row.name.split(/ +/);
-        var finalName = splitName[1] + " " + splitName[0];
+        var finalName = splitName[1] + ' ' + splitName[0];
         profs.push(finalName);
-
-        var totalStudents = row.a1 + row.a2 + row.a3 + row.b1 + row.b2 + row.b3
-                          + row.c1 + row.c2 + row.c3 + row.d1 + row.d2 + row.d3
-                          + row.f;
-        var currPercentages = [];
-        currPercentages.push((row.a1 + row.a2) / totalStudents * 100);
-        currPercentages.push(row.a3 / totalStudents * 100);
-        var letters = ["b", "c", "d"];
-        var numbers = ["1", "2", "3"];
-        letters.forEach(function(letter) {
-          numbers.forEach(function(number) {
-            currPercentages.push(row[letter + number] / totalStudents * 100);
-          });
-        });
-        currPercentages.push(row.f / totalStudents * 100);
-        percentages.push(currPercentages);
+        delete row.name;
+        // Stores info of the percentage of each class that got each grade
+        var totalStu = Object.values(row).reduce((a, b) => a + b, 0);
+        var currPerc = [];
+        Object.values(row).forEach(numStu => currPerc.push(numStu / totalStu));
+        percentages.push(currPerc);
       }, () => {
-        // console.log(profs);
-        // console.log(percentages);
-
-        ratings(profs, percentages, function(res) {
-          var resCopy = res.concat([]);
-          console.log(resCopy);
-          resCopy.sort();
-          var profsCopy = [];
-          for (var i = resCopy.length - 1; i > -1; i--) {
-            var index = res.indexOf(resCopy[i]);
-            profsCopy.push(profs[index]);
-          }
-          console.log(profsCopy);
-
-          // FINAL OUTPUT
-          resolve(profsCopy);
+        var promises = profs.map(prof => {
+          return getProfRating(prof);
         });
+        // Gets the Rate My Professors rating for each professor
+        Promise.all(promises)
+          .then(ratings => {
+            var scores = getScores(profs, ratings, percentages);
+            // Zip up the profs and scores into an object
+            var profData = {};
+            profs.forEach((prof, i) => profData[prof] = scores[i]);
+            console.log(profData);
+            // Sort professors by their scores in descending order
+            var sortedProfs = Object.keys(profData).sort((a, b) => {
+              return profData[b] - profData[a];
+            });
+
+            // Wrap sorted professor list and score data into an object
+            var finalData = {};
+            finalData.list = sortedProfs;
+            finalData.scores = profData;
+
+            // FINAL OUTPUT
+            resolve(finalData);
+          });
       });
       
       db.close();
     });
 
-    function ratings(array, percentages, callback) {
-      overallRating(array, function(res) {
-        var sum = 0.0;
-        for (var i = 0; i < res.length; i++) {
-          if (res[i] != -1)
-            sum += res[i];
+  });
+}
+
+// Gets the PickYourProf score for each professor
+function getScores(profs, ratings, percentages) {
+  // Gets average rating of professors that have ratings on Rate My Professors
+  var numProfs = 0;
+  var sum = 0.0;
+  ratings.forEach(rating => {
+    // Only adds to sum if professor has a rating
+    if (rating !== '-1.0') {
+      sum += parseFloat(rating);
+      numProfs++;
+    }
+  });
+  var avg = sum / numProfs;
+
+  var scores = [];
+  for (var i = 0; i < profs.length; i++) {
+    // Sets Rate My Professor rating to average if professor has no rating
+    if (ratings[i] === '-1.0') {
+      ratings[i] = avg;
+    } else {
+      // Converts ratings in array from strings to floats
+      ratings[i] = parseFloat(ratings[i]);
+    }
+
+    // GPA that a student gets for getting between an A+ and an F
+    const gpa = [4, 4, 3.67, 3.33, 3, 2.67, 2.33, 2, 1.67, 1.33, 1, 0.67, 0];
+    // Calculates average GPA of students in the course
+    var avgGpa = 0;
+    percentages[i].forEach((percent, j) => avgGpa += percent * gpa[j]);
+    // Normalize average GPA to be out of 5 instead of 4
+    avgGpa *= (5.0 / 4.0);
+
+    // Score is normalized average GPA + Rate My Professors rating
+    // Max score is 10
+    var score = avgGpa + ratings[i];
+    scores.push(score);
+  }
+  return scores;
+}
+
+// Base URL for HTTP request
+const baseURL = 'http://www.ratemyprofessors.com/search.jsp?queryoption=HEADER' + 
+  '&queryBy=teacherName&schoolName=University+of+Texas+at+Austin&schoolID=1255&query=';
+
+// Gets the rating for a professor
+function getProfRating(name) {
+  return new Promise((resolve, reject) => {
+    // Goes through list of professors
+    name = name.replace(' ', '+');
+    // Link to query Rate My Professors
+    var link = baseURL + name;
+    // Searches for the professor on Rate My Professors
+    // If professor found, then gets the professor's rating
+    fetchProfLink(link)
+      .then(endLink => {
+        fetchProfRating('http://www.ratemyprofessors.com' + endLink)
+         .then(rating => resolve(rating))
+         .catch(e => resolve(e));
+      })
+      .catch(err => resolve(err));
+  });
+}
+
+// Gets link of professor on Rate My Professors
+function fetchProfLink(link) {
+  return new Promise((resolve, reject) => {
+    fetch(link)
+      .then(res => res.text())
+      .then(body => {
+        var $ = Cheerio.load(body);
+        // Checks if any results are found
+        var htmas = $('div.not-found-box').next().html();
+        if (!htmas.includes('Your search')) {
+          // Gets the link for the first result
+          $('.listings').filter(function() {
+            var endLink = $($(this)[0].children[3].children[1]).attr('href');
+            resolve(endLink);
+          });
+        } else {
+          // No results found in Rate My Professors for the professor
+          reject('-1.0');
         }
-        var avg = sum / res.length;
+      })
+      .catch(err => reject('-1.0'));
+  });
+}
 
-        var scores = [];
-
-        var index = -1;
-        var best = -0.1;
-        for (var i = 0; i < array.length; i++) {
-          if (res[i] === -1) {
-            res[i] = avg;
-          }
-          var gpa = [4, 3.67, 3.33, 3, 2.67, 2.33, 2, 1.67, 1.33, 1, 0.67, 0];
-          var avgGpa = 0;
-          for (var j = 0; j < percentages[i].length; j++) {
-            avgGpa += percentages[i][j] * gpa[j];
-          }
-          avgGpa /= 100.0;
-          avgGpa = avgGpa * 5.0 / 4.0;
-
-          var score = avgGpa + res[i];
-          scores.push(score);
+// Gets rating of professor on Rate My Professors
+function fetchProfRating(link) {
+  return new Promise((resolve, reject) => {
+    fetch(link)
+      .then(resp => resp.text())
+      .then(html => {
+        // Queries the link to the professor's page
+        var $ = Cheerio.load(html);
+        var overallQuality = $('[class=\'breakdown-container quality\'] .grade').html();
+        if (overallQuality != null) {
+          overallQuality = overallQuality.replace(/\s+/g, '');
+          // Overall rating found for professor
+          resolve(overallQuality);
+        } else {
+          // No overall rating found for professor
+          reject('-1.0');
         }
-
-        callback(scores);
-
       });
-    }
-
-    //Gets an array of ratings
-    function overallRating(array, callback) {
-      var json = {};
-      // Goes through list of professors
-      for (var i = 0; i < array.length; i++) {
-        var name = array[i];
-        name = name.replace(" ", "+");
-        // Link to query Rate My Professors
-        var link = "http://www.ratemyprofessors.com/search.jsp?queryoption=HEADER&queryBy=teacherName" +
-          "&schoolName=University+of+Texas+at+Austin&schoolID=1255&query=" + name;
-
-        // Queries the link to the professor search results
-        Request(link, function(err, resp, body) {
-          if (!err && resp.statusCode == 200) {
-            var $ = Cheerio.load(body);
-
-            // Checks if any results are found
-            var htmas = $("div.not-found-box").next().html();
-            if (!htmas.includes("Your search")) {
-              // Gets the link for the first result
-              $(".listings").filter(function() {
-                var endLink = $($(this)[0].children[3].children[1]).attr("href");
-                var link2 = "http://www.ratemyprofessors.com" + endLink;
-
-                // Queries the link to the professor's page
-                Request(link2, function(error, response, html) {
-                  if (!error && response.statusCode == 200) {
-                    var $ = Cheerio.load(html),
-                    overallQuality = $("[class='breakdown-container quality'] .grade").html();
-                    if (overallQuality != null) {
-                      var overallQuality = overallQuality.replace(/\s+/g, "");
-                      firstName = $(".pfname").html();
-                      lastName = $(".plname").html();
-                      var firstName = firstName.replace(/\s+/g, "");
-                      var lastName = lastName.replace(/\s+/g, "");
-                      //console.log(firstName + " " + lastName + " " + overallQuality);
-                      json[lastName.toUpperCase()] = overallQuality;
-                    } else {
-                      var overallQuality = -1.0;
-                      name = $("div.name").html();
-                      //console.log(name + " " + overallQuality);
-                      var i = name.indexOf(" ");
-                      json[name.substring(i + 1).toUpperCase()] = overallQuality;
-                    }
-                  }
-                });
-              });
-            } else {
-              // No results found in Rate My Professors
-            }
-          }
-        });
-      }
-
-      // Converts json to array after 2.5 seconds
-      setTimeout(function() {
-        var arr = [];
-        for (var i = 0; i < array.length; i++) {
-          var index = array[i].indexOf(" ");
-          if (json[array[i].substring(index + 1)] == null)
-            arr[i] = -1;
-          else
-            arr[i] = parseFloat(json[array[i].substring(index + 1)]);
-        }
-        callback(arr);
-      }, 2500);
-    }
   });
 }
