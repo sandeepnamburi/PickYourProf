@@ -99,7 +99,7 @@
       document.getElementById("showProfessor").style.visibility = "hidden";
       var img = document.getElementById("theImage");
       img.style.visibility = "visible";
-      var cnum = document.getElementById("course").value.replace(/\s+/g, "");
+      var cnum = document.getElementById("course").value.replace(/\s+/g, "").toUpperCase();
       var dep = document.getElementById("dep").value.replace(/\s+/g, "").toUpperCase();
       if (dep == "" || cnum == "") {
         alert("Please enter a valid department (Ex: CS, M) and course number (Ex: 314, 408D).");
