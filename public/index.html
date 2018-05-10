@@ -97,18 +97,18 @@
 
     function getProfessors() {
       document.getElementById("showProfessor").style.visibility = "hidden";
-      var img = document.getElementById("theImage");
+      let img = document.getElementById("theImage");
       img.style.visibility = "visible";
-      var cnum = document.getElementById("course").value.replace(/\s+/g, "").toUpperCase();
-      var dep = document.getElementById("dep").value.replace(/\s+/g, "").toUpperCase();
+      let cnum = document.getElementById("course").value.replace(/\s+/g, "").toUpperCase();
+      let dep = document.getElementById("dep").value.replace(/\s+/g, "").toUpperCase();
       if (dep == "" || cnum == "") {
         alert("Please enter a valid department (Ex: CS, M) and course number (Ex: 314, 408D).");
-        var img = document.getElementById("theImage");
+        let img = document.getElementById("theImage");
         img.style.visibility = "hidden";
       }
 
-      var combine = dep + " " + cnum;
-      var courseData = new FormData();
+      let combine = dep + " " + cnum;
+      let courseData = new FormData();
       courseData.append("course", combine);
 
       fetch("/home", {
@@ -124,7 +124,7 @@
     // CALL THIS METHOD WHEN PROFESSOR IS FOUND
     function foundProfessor(name){
       document.getElementById("showProfessor").innerHTML = name;
-      var img = document.getElementById("theImage");
+      let img = document.getElementById("theImage");
       img.style.visibility = "hidden";
       document.getElementById("showProfessor").style.visibility = "visible";
     }
