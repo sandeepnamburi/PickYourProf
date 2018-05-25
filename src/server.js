@@ -19,21 +19,20 @@ app.post('/home', upload.any(), (req, res) => {
 
   // Get the sorted list of professors and their scores
   getProfData(course)
-    .then(function(data) {
+    .then(data => {
       if (data.list.length == 0)
         res.send('Not found in database. Ensure spelling.');
       else {
         // HTML tags for output formatting
-        const leftTag = '<td style="font-size:18px;font-family:Roboto;color:black;">';
-        const rightTag = '<td style="font-size:18px;font-family:Roboto;color:black;">';
+        const tag = '<td style="font-size:18px;font-family:Roboto;color:black;">';
         let output = '<table style="width:40%;margin-left:26%;margin-right:20%;">';
-        output += `<tr>${leftTag}<b>Professor</b></td>${rightTag}<b>Score</b></td></tr>`;
+        output += `<tr>${tag}<b>Professor</b></td>${tag}<b>Score</b></td></tr>`;
         data.list.forEach(prof => {
           // Formats the name correctly
-          let name = formatName(prof);
+          let name = formatFullName(prof);
           output += '<tr>';
-          output += (leftTag + name + '</td>');
-          output += (rightTag + (Math.round(data.scores[prof] * 100) / 100) + '</td>');
+          output += (tag + name + '</td>');
+          output += (tag + (Math.round(data.scores[prof] * 100) / 100) + '</td>');
           output += '</tr>';
         });
         output += '</table>';
@@ -52,17 +51,16 @@ app.listen(PORT, () => {
   console.log('Example app listening on http://localhost:' + PORT);
 });
 
-function formatName(name) {
-  // Capitalize only the first letter of first and last name
+function formatFullName(name) {
+  // Capitalize only the first letter of first and last name and account for hyphens
   let arr = name.split(' ');
-  let first = arr[0].substring(0, 1) + arr[0].substring(1).toLowerCase();
-  let last = (arr[1].substring(0, 1) + arr[1].substring(1).toLowerCase());
-  // Fix the cases where there is a hyphen in the person's name
-  arr = first.split('-');
-  if (arr.length > 1)
-    first = arr[0] + '-' + arr[1].substring(0, 1).toUpperCase() + arr[1].substring(1);
-  arr = last.split('-');
-  if (arr.length > 1)
-    last = arr[0] + '-' + arr[1].substring(0, 1).toUpperCase() + arr[1].substring(1);
+  let first = formatToken(arr[0]);
+  let last = formatToken(arr[1]);
   return first + ' ' + last;
+}
+
+function formatToken(token) {
+  token = token.substring(0, 1) + token.substring(1).toLowerCase();
+  let arr = token.split('-');
+  return arr.length < 2 ? token : `${arr[0]}-${arr[1].substr(0, 1).toUpperCase()}${arr[1].substr(1)}`;
 }

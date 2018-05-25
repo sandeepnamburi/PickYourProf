@@ -43,9 +43,7 @@ module.exports = courseNumber => {
         Object.values(row).forEach(numStu => currPerc.push(numStu / totalStu));
         percentages.push(currPerc);
       }, () => {
-        let promises = profs.map(prof => {
-          return getProfInfo(prof);
-        });
+        let promises = profs.map(prof => getProfInfo(prof));
         // Gets the Rate My Professors info for each professor
         // Calculates the Pick Your Prof score for each professor
         Promise.all(promises)
@@ -117,12 +115,12 @@ function getScores(profs, responses, percentages) {
     let avgGpa = 0;
     percentages[i].forEach((percent, j) => avgGpa += percent * gpa[j]);
     // Normalize average GPA to be out of 5 instead of 4
-    avgGpa *= (5.0 / 4.0);
+    avgGpa *= 5.0 / 4.0;
 
     // Score is normalized average GPA + Rate My Professors rating
     // If none of the professors are on RMP, score is avg GPA scaled out of 10
     // Max score is 10
-    let score = (numProfs === 0) ? avgGpa + ratings[i] : avgGpa * 2;
+    let score = numProfs === 0 ? avgGpa + ratings[i] : avgGpa * 2;
     scores.push(score);
   }
   return scores;
@@ -206,7 +204,7 @@ function scrapeProfInfo(link) {
           response.again = again === 'N/A' ? undefined : again;
         }
         // Reject if response is empty
-        if (response == {}) {
+        if (response === {}) {
           reject(response);
         }
         resolve(response);
