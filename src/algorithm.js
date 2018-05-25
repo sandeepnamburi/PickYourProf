@@ -81,7 +81,13 @@ module.exports = courseNumber => {
 function getScores(profs, responses, percentages) {
   // Gets professor ratings from response objects
   let ratings = [];
-  responses.forEach(res => ratings.push(res.rating));
+  let difficulties = [];
+  let agains = [];
+  responses.forEach(res => {
+    ratings.push(res.rating);
+    difficulties.push(res.difficulty);
+    agains.push(res.again);
+  });
 
   // Gets average rating of professors that have ratings on Rate My Professors
   let numProfs = 0;
@@ -138,8 +144,8 @@ function getProfInfo(name) {
     scrapeProfLink(link)
       .then(endLink => {
         scrapeProfInfo('http://www.ratemyprofessors.com' + endLink)
-         .then(rating => resolve(rating))
-         .catch(e => resolve(e));
+          .then(rating => resolve(rating))
+          .catch(e => resolve(e));
       })
       .catch(err => resolve(err));
   });
@@ -170,7 +176,7 @@ function scrapeProfLink(link) {
 }
 
 // Possible keys in the response object when getting professor info
-const responseKeys = ['rating'];
+const responseKeys = ['rating', 'difficulty', 'again'];
 
 // Scrapes info of professor on Rate My Professors
 function scrapeProfInfo(link) {
@@ -181,11 +187,23 @@ function scrapeProfInfo(link) {
         // Queries the link to the professor's page
         let $ = Cheerio.load(html);
         let response = {};
-        let rating = $('[class=\'breakdown-container quality\'] .grade').html();
+        let rating = $('div.breakdown-container.quality .grade').html();
         if (rating) {
           rating = rating.replace(/\s+/g, '');
           // Overall rating found for professor
-          response.rating = rating;
+          response.rating = rating === 'N/A' ? undefined : rating;
+        }
+        let difficulty = $('div.breakdown-section.difficulty .grade').html();
+        if (difficulty) {
+          difficulty = difficulty.replace(/\s+/g, '');
+          // Difficulty found for professor
+          response.difficulty = difficulty === 'N/A' ? undefined : difficulty;
+        }
+        let again = $('div.breakdown-section.takeAgain .grade').html();
+        if (again) {
+          again = again.replace(/[\s%]+/g, '');
+          // Take again percentage found for professor
+          response.again = again === 'N/A' ? undefined : again;
         }
         // Reject if response is empty
         if (response == {}) {
