@@ -77,53 +77,66 @@ module.exports = courseNumber => {
 
 // Gets the PickYourProf score for each professor
 function getScores(profs, responses, percentages) {
-  // Gets professor ratings from response objects
-  let ratings = [];
-  let difficulties = [];
-  let agains = [];
-  responses.forEach(res => {
-    ratings.push(res.rating);
-    difficulties.push(res.difficulty);
-    agains.push(res.again);
-  });
-
-  // Gets average rating of professors that have ratings on Rate My Professors
+  // Gets the average of all the professor's metric averages
   let numProfs = 0;
-  let sum = 0.0;
-  ratings.forEach(rating => {
-    // Only adds to sum if professor has a rating
-    if (rating) {
-      sum += parseFloat(rating);
-      numProfs++;
-    }
-  });
-  let avg = sum / numProfs;
-
-  let scores = [];
-  for (let i = 0; i < profs.length; i++) {
-    // Sets Rate My Professor rating to average if professor has no rating
-    if (ratings[i] === '-1.0') {
-      ratings[i] = avg;
+  let sum = 0;
+  let metricAverages = [];
+  let metricAverage;
+  for (let resp of responses) {
+    if (Object.keys(resp).length === 0) {
+      metricAverages.push(-1);
     } else {
-      // Converts ratings in array from strings to floats
-      ratings[i] = parseFloat(ratings[i]);
+      numProfs++;
+      normalizeMetrics(resp);
+      metricAverage = getMetricAverage(resp);
+      metricAverages.push(metricAverage);
+      sum += metricAverage;
     }
+  }
+  let avg = sum / numProfs;
+  console.log(metricAverages);
+  let scores = [];
+  let score, avgGpa;
+  for (let i = 0; i < profs.length; i++) {
+    // Sets Rate My Professor metric average if professor has no metrics
+    if (metricAverages[i] === -1)
+      metricAverages[i] = avg;
 
     // GPA that a student gets for getting between an A+ and an F
     const gpa = [4, 4, 3.67, 3.33, 3, 2.67, 2.33, 2, 1.67, 1.33, 1, 0.67, 0];
     // Calculates average GPA of students in the course
-    let avgGpa = 0;
+    avgGpa = 0;
     percentages[i].forEach((percent, j) => avgGpa += percent * gpa[j]);
     // Normalize average GPA to be out of 5 instead of 4
-    avgGpa *= 5.0 / 4.0;
+    avgGpa *= 5 / 4;
 
-    // Score is normalized average GPA + Rate My Professors rating
+    // Score is normalized average GPA + Rate My Professors metric average
     // If none of the professors are on RMP, score is avg GPA scaled out of 10
     // Max score is 10
-    let score = numProfs === 0 ? avgGpa + ratings[i] : avgGpa * 2;
+    score = numProfs !== 0 ? avgGpa + metricAverages[i] : avgGpa * 2;
     scores.push(score);
   }
   return scores;
+
+  // Calculates average of the three metrics for each professor
+  function getMetricAverage(res) {
+    let metricSum = 0;
+    let numMetrics = 0;
+    for (let prop in res) {
+      if (res[prop]) {
+        metricSum += res[prop];
+        numMetrics++;
+      }
+    }
+    return metricSum / numMetrics;
+  }
+
+  // Normalize metrics in response to be out of 5.0 and fix types
+  function normalizeMetrics(res) {
+    res.rating = res.rating ? parseFloat(res.rating) : undefined;
+    res.difficulty = res.difficulty ? parseFloat(res.difficulty) : undefined;
+    res.again = res.again ? parseFloat(res.again) / 20 : undefined;
+  }
 }
 
 // Base URL for HTTP request
@@ -203,9 +216,9 @@ function scrapeProfInfo(link) {
           // Take again percentage found for professor
           response.again = again === 'N/A' ? undefined : again;
         }
-        // Reject if response is empty
-        if (response === {}) {
-          reject(response);
+        // Reject if response has undefined values for each 
+        if (!(response.rating || response.difficulty || response.again)) {
+          reject({});
         }
         resolve(response);
       });
