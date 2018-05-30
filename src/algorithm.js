@@ -94,7 +94,7 @@ function getScores(profs, responses, percentages) {
     }
   }
   let avg = sum / numProfs;
-  console.log(metricAverages);
+
   let scores = [];
   let score, avgGpa;
   for (let i = 0; i < profs.length; i++) {
