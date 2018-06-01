@@ -134,7 +134,9 @@ function getScores(profs, responses, percentages) {
   // Normalize metrics in response to be out of 5.0 and fix types
   function normalizeMetrics(res) {
     res.rating = res.rating ? parseFloat(res.rating) : undefined;
-    res.difficulty = res.difficulty ? parseFloat(res.difficulty) : undefined;
+    // 5 - difficulty because we want to make higher difficulty be lower rating
+    res.difficulty = res.difficulty ? 5 - parseFloat(res.difficulty) : undefined;
+    // Again percentage / 20 to normalize it out of 5
     res.again = res.again ? parseFloat(res.again) / 20 : undefined;
   }
 }
