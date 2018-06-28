@@ -5,6 +5,7 @@
 const fetch = require('node-fetch');
 const Cheerio = require('cheerio');
 const sqlite3 = require('sqlite3').verbose();
+const Sentiment = require('sentiment');
 
 module.exports = courseNumber => {
   return new Promise((resolve, reject) => {
