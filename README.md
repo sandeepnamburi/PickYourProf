@@ -27,12 +27,9 @@ Our app has a light front-end with HTML and CSS. We have a powerful node web app
 
 <h3>How it works</h3>
 Once the user enters a course, the program gets the list of professors who teach the course and the distribution of grades
-for each professor for the given course. Then, it scrapes RateMyProfessors in order to get the overall quality, difficulty, and
-percentage of students who would take a course by the professor again for each of the professors in the list.
+for each professor for the given course. Then, it scrapes RateMyProfessors in order to get the overall quality, difficulty, average sentiment of comments, and percentage of students who would take a course by the professor again for each of the professors in the list.
 
-With this data, the algorithm normalizes the overall quality, difficulty, and take again percentage to be out of 5, with 5 being the best.
-The algorithm then averages the three metrics and adds the average to the average GPA of a student taking a course with the professor,
-which is the final PickYourProf score.
+With this data, the algorithm normalizes the overall quality, difficulty, average sentiment, and take again percentage to be out of 5, with 5 being the best. The algorithm then does a weight average of the metrics and adds it to the average GPA of a student taking a course with the professor, to get the PickYourProf score, which is on a scale from 0 to 10.
 
 <h3>How to open source</h3>
 We've included the bootsrap folder we've implemented material design. algorithm.js, server.js, and index.html are the main source dependencies. To add to our algorithm or frontend and expand to other schools, user the files listed above.

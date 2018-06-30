@@ -1,5 +1,13 @@
 # Changelog for PickYourProf
 
+## [2.2.0] - 2018-06-29
+### Added
+- Took sentiment analysis of comments into account in the algorithm
+- Added how the algorithm works
+
+### Changed
+- Made RMP metrics other than overall quality worth less
+
 ## [2.1.0] - 2018-05-31
 ### Added
 - Scraped difficulty rating and take again percentage metrics from Rate My Professors to include in algorithm calculations

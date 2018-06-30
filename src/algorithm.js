@@ -6,6 +6,7 @@ const fetch = require('node-fetch');
 const Cheerio = require('cheerio');
 const sqlite3 = require('sqlite3').verbose();
 const Sentiment = require('sentiment');
+const sentiment = new Sentiment();
 
 module.exports = courseNumber => {
   return new Promise((resolve, reject) => {
@@ -124,9 +125,15 @@ function getScores(profs, responses, percentages) {
     let metricSum = 0;
     let numMetrics = 0;
     for (let prop in res) {
+      // Make rating worth more than sentiment, difficulty and take again
       if (res[prop]) {
-        metricSum += res[prop];
-        numMetrics++;
+        if (prop === 'rating') {
+          metricSum += res[prop];
+          numMetrics++;
+        } else {
+          metricSum += res[prop] / 4;
+          numMetrics += 1 / 4;
+        }
       }
     }
     return metricSum / numMetrics;
@@ -139,6 +146,9 @@ function getScores(profs, responses, percentages) {
     res.difficulty = res.difficulty ? 5 - parseFloat(res.difficulty) : undefined;
     // Again percentage / 20 to normalize it out of 5
     res.again = res.again ? parseFloat(res.again) / 20 : undefined;
+    // Change sentiment scale from -5 to 5 to 0 to 5
+    res.sentimentAvg = res.sentimentAvg ? (res.sentimentAvg + 5) / 2 : undefined;
+    console.log(res);
   }
 }
 
@@ -190,7 +200,7 @@ function scrapeProfLink(link) {
 }
 
 // Possible keys in the response object when getting professor info
-const responseKeys = ['rating', 'difficulty', 'again'];
+const responseKeys = ['rating', 'difficulty', 'again', 'sentimentAvg'];
 
 // Scrapes info of professor on Rate My Professors
 function scrapeProfInfo(link) {
@@ -219,8 +229,27 @@ function scrapeProfInfo(link) {
           // Take again percentage found for professor
           response.again = again === 'N/A' ? undefined : again;
         }
+        let numComments = 0;
+        let sentimentSum = 0;
+        let comment, sentimentRes, commentSentiment;
+        $('tr').each(function(i, elem) {
+          if (!isNaN($(this).attr('id'))) {
+            comment = $(this).children()[2].children[3].children[0].data.trim();
+            sentimentRes = sentiment.analyze(comment);
+            if (sentimentRes.words.length === 0)
+              commentSentiment = 0;
+            else
+              commentSentiment = sentimentRes.score / sentimentRes.words.length;
+            sentimentSum += commentSentiment;
+            numComments++;
+          }
+        });
+        response.sentimentAvg = numComments === 0 ? undefined : sentimentSum / numComments;
         // Reject if response has undefined values for each 
-        if (!(response.rating || response.difficulty || response.again)) {
+        if (!(response.rating ||
+              response.difficulty ||
+              response.again ||
+              response.sentimentAvg)) {
           reject({});
         }
         resolve(response);
