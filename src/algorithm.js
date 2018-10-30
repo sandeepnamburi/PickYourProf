@@ -35,7 +35,7 @@ module.exports = courseNumber => {
           throw err;
         }
         // Reorders full name into first name, last name
-        let splitName = row.name.split(/ +/);
+        let splitName = row.name.split(/,?\s+/);
         let finalName = splitName[1] + ' ' + splitName[0];
         profs.push(finalName);
         delete row.name;
