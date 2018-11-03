@@ -21,8 +21,10 @@ module.exports = courseNumber => {
     let rts = courseNumber.split(' ');
     db.serialize(() => {
       // SQL query for getting professors and their grade data for a course
-      let sql = `SELECT prof AS name, a1, a2, a3, b1, b2, b3, c1, c2, c3, d1, d2, d3, f
+      let sql = `SELECT prof AS name, a1, a2, a3, b1, b2, b3, c1, c2, c3, d1, d2, d3, f, rating, difficulty, take_again, sentiment, last_updated
                 FROM agg
+                INNER JOIN rmp_cache
+                ON agg.prof=rmp_cache.professor
                 WHERE dept = ? AND course_nbr = ?
                 ORDER BY name`;
 
