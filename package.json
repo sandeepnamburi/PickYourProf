@@ -3,7 +3,8 @@
   "description": "Get best professors for a UT Austin class",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "devstart": "nodemon src/server.js"
   },
   "version": "2.3.0",
   "dependencies": {
@@ -16,5 +17,8 @@
     "path": "^0.12.7",
     "sentiment": "^5.0.1",
     "sqlite3": "^4.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.4"
   }
 }

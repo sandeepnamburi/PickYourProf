@@ -264,9 +264,11 @@ function scrapeProfInfo(link) {
         }
         let numComments = 0;
         let sentimentSum = 0;
-        let comment, sentimentRes, commentSentiment;
+        let comment, sentimentRes, commentSentiment, id;
         $('tr').each(function (i, elem) {
-          if (!isNaN($(this).attr('id'))) {
+          id = $(this).attr('id');
+          // Checks if id exists, has a nonzero length, and is a number
+          if (id && !isNaN(id)) {
             comment = $(this).children()[2].children[3].children[0].data.trim();
             sentimentRes = sentiment.analyze(comment);
             if (sentimentRes.words.length === 0)
