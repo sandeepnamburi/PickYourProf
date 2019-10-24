@@ -1,5 +1,16 @@
 # Changelog for PickYourProf
 
+## [2.3.1] - 2019-10-23
+### Fixed
+- Bug where checking if table row ID was a number didn't handle empty strings
+
+## [2.3.0] - 2018-11-02
+### Added
+- Caching of Rate My Professors data
+
+### Changed
+- Updated database with 2018 data
+
 ## [2.2.0] - 2018-06-29
 ### Added
 - Took sentiment analysis of comments into account in the algorithm
